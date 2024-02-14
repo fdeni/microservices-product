@@ -1,0 +1,42 @@
+version: '2.6'
+services:
+  mysql-db:
+    image: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: denif
+      MYSQL_DATABASE: test
+      MYSQL_USER: denif
+      MYSQL_PASSWORD: denif
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./project-microservices-product/db-init.sql:/docker-entrypoint-initdb.d/db-init.sql
+    restart: always
+
+  auth-service-app:
+    build: auth-service
+    environment:
+      MYSQL_HOST: mysql-db
+      MYSQL_PORT: 3306
+      MYSQL_USER: denif
+      MYSQL_PASSWORD: denif
+      JWT_SECRET_KEY: KWM6+i4+scGiBAwnJFcuLj4UhueQhM1vAoBqQvXRc3+um2qqfTf8pbVQAdPac9nu3WVjEI6Sly7B+S5i02v/hAax2INRO5txMp93Q7ehp6XDyEbEzXjIEsf8Zg9DBtmkFg9Xtp73sA5+i6H8tR2kq+huK/3Hv4O9jLm2t6I2sscUceVGbrnaeueztTNeMfYHicCXn3EmPXWpELfdHdfVdlpaiKMQ3mcjli/o0TjePOODeNe02TfnSEQev2IFROVE4AktgKklVBPuw87d6hf2Y8U+IlWJ9eg6cCP9dDiPA0/zHKleUbjqAKBTKp85Fxcx2zPlrQwhXJR27kJ8mA3XTzEQjtNmx3UuOd14cgdc6bg=
+    ports:
+      - "9090:9090"
+    depends_on:
+      - mysql-db
+    restart: always
+
+  product-service-app:
+      build: product-service
+      environment:
+        MYSQL_HOST: mysql-db
+        MYSQL_PORT: 3306
+        MYSQL_USER: denif
+        MYSQL_PASSWORD: denif
+        AUTH_SERVICE_URL: http://auth-service-app:9090
+      ports:
+        - "9191:9191"
+      depends_on:
+        - mysql-db
+      restart: always
